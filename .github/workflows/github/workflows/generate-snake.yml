@@ -1,0 +1,37 @@
+name: Generate Snake
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Runs every day at midnight
+  push:
+    branches:
+      - main  # Runs on every push to the main branch
+  workflow_dispatch:  # Allows to manually trigger the workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Generate Snake
+        uses: Platane/snk@master
+        with:
+          github_user_name: muhammadumerbasharat
+          output: dist/snake.svg
+
+      - name: Create output directory
+        run: mkdir -p dist
+
+      - name: Add the generated snake to the repository
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
+          git add dist/snake.svg
+          git commit -m 'Generated snake'
+          git push
